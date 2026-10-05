@@ -1,0 +1,18 @@
+{
+  "name": "betopia-email-signature",
+  "version": "1.0.0",
+  "description": "Official email signature generator for Betopia Limited",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx serve ."
+  },
+  "keywords": [
+    "email-signature",
+    "generator",
+    "betopia",
+    "canvas-2d",
+    "html5"
+  ],
+  "author": "Betopia Limited",
+  "license": "MIT"
+}
