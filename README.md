@@ -21,7 +21,7 @@ Official email signature generation studio and automation utility for **Betopia 
 - **Dynamic User Inputs**:
   - Full Name (Default: `John Doe`)
   - Role / Title (Default: `AI Engineer`)
-  - Phone Number (Default: `+8801712345678`)
+  - Phone Number (Default: `+880 1700 000000`)
   - Transparent Background toggle (PNG)
 - **Interactive Web Studio**:
   - **Live Canvas Preview**: Real-time canvas rendering as you type at 1:1 pixel scale (800 × 100 px).
@@ -66,7 +66,7 @@ pip install pillow
 ### 2. Single Signature Generation
 ```bash
 # Generate 800x100 (default)
-python generate_signature.py --name "John Doe" --role "AI Engineer" --phone "+8801712345678"
+python generate_signature.py --name "John Doe" --role "AI Engineer" --phone "+880 1700 000000"
 ```
 
 ### 3. Batch Generation from CSV or JSON
@@ -75,7 +75,7 @@ To generate signatures for your entire team at once:
 Create a `team.csv` file:
 ```csv
 Name,Role,Phone
-John Doe,AI Engineer,+8801712345678
+John Doe,AI Engineer,+880 1700 000000
 Sarah Jenkins,Lead Product Designer,+8801712345679
 Michael Vance,VP of Engineering,+8801798765432
 ```

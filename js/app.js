@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const data = {
       name: (inputName && inputName.value.trim()) || 'John Doe',
       role: (inputRole && inputRole.value.trim()) || 'AI Engineer',
-      phone: (inputPhone && inputPhone.value.trim()) || '+8801712345678',
+      phone: (inputPhone && inputPhone.value.trim()) || '+880 1700 000000',
       address: COMPANY_ADDRESS,
       transparentBg: inputTransparent ? inputTransparent.checked : false,
       preset: selectedPreset
@@ -136,7 +136,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   btnReset.addEventListener('click', () => {
     if (inputName) inputName.value = 'John Doe';
     if (inputRole) inputRole.value = 'AI Engineer';
-    if (inputPhone) inputPhone.value = '+8801712345678';
+    if (inputPhone) inputPhone.value = '+880 1700 000000';
     if (inputTransparent) inputTransparent.checked = false;
 
     scheduleRender(10);

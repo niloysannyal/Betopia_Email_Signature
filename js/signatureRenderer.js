@@ -155,7 +155,7 @@ class SignatureRenderer {
   async render({
     name = 'John Doe',
     role = 'AI Engineer',
-    phone = '+8801712345678',
+    phone = '+880 1700 000000',
     address = 'Kaderia Tower, Level-1, Mohakhali C/A, Dhaka-1212, Bangladesh.',
     transparentBg = false,
     preset = this.currentPreset

@@ -89,7 +89,7 @@ def load_fonts(profile, scale=1):
 def generate_signature(
     name="John Doe",
     role="AI Engineer",
-    phone="+8801712345678",
+    phone="+880 1700 000000",
     address=DEFAULT_ADDRESS,
     dimension="800x100",
     logo_path=None,
@@ -213,7 +213,7 @@ def main():
     parser = argparse.ArgumentParser(description="Betopia Email Signature Generator")
     parser.add_argument("--name", default="John Doe", help="Full name")
     parser.add_argument("--role", default="AI Engineer", help="Job title or role")
-    parser.add_argument("--phone", default="+8801712345678", help="Phone number")
+    parser.add_argument("--phone", default="+880 1700 000000", help="Phone number")
     parser.add_argument("--address", default=DEFAULT_ADDRESS, help="Company address")
     parser.add_argument("--dimension", "-d", choices=["800x100"], default="800x100", help="Target signature dimension (800x100)")
     parser.add_argument("--format", choices=["png", "jpg", "jpeg"], default="png", help="Output format")
