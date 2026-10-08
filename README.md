@@ -100,7 +100,7 @@ All generated signatures will be automatically saved into the `signatures/` fold
 
 ### Outlook (Desktop & Web)
 1. In the Web Studio, click **Copy Image to Clipboard** (or download the PNG).
-2. In Outlook, go to **Settings &rarr; Options &rarr; Layout &rarr; Email signature**.
+2. In Outlook, go to **Settings &rarr; Options &rarr; Mail &rarr; Layout &rarr; Email signature**.
 3. Create a new signature and press **Ctrl + V** to paste the image.
 4. Save your signature.
 
