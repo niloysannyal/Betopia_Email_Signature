@@ -86,6 +86,37 @@ def load_fonts(profile, scale=1):
     }
 
 
+def format_phone_number(raw_phone):
+    """
+    Automatically formats phone numbers.
+    e.g. '+8801700000000' or '01700000000' -> '+880 1700 000000'
+    """
+    if not raw_phone:
+        return ""
+    text = str(raw_phone).strip()
+    digits = "".join(c for c in text if c.isdigit())
+
+    # 1. 880 followed by 10 digits (+8801700000000 or 8801700000000 -> 13 digits)
+    if digits.startswith("880") and len(digits) == 13:
+        return f"+880 {digits[3:7]} {digits[7:]}"
+
+    # 2. 01 followed by 9 digits (01700000000 -> 11 digits)
+    if digits.startswith("01") and len(digits) == 11:
+        return f"+880 {digits[1:5]} {digits[5:]}"
+
+    # 3. 10 digits starting with 1 (1700000000)
+    if digits.startswith("1") and len(digits) == 10:
+        return f"+880 {digits[:4]} {digits[4:]}"
+
+    # 4. Starts with +880 or 880 and has 10 subsequent digits
+    if text.startswith("+880") or text.startswith("880"):
+        rest = "".join(c for c in text.split("880", 1)[1] if c.isdigit())
+        if len(rest) == 10:
+            return f"+880 {rest[:4]} {rest[4:]}"
+
+    return text
+
+
 def generate_signature(
     name="John Doe",
     role="AI Engineer",
@@ -104,6 +135,7 @@ def generate_signature(
     profile = PROFILES.get(dimension, PROFILES["800x100"])
     scale = max(1, int(supersample))
     fonts = load_fonts(profile, scale=scale)
+    phone = format_phone_number(phone)
 
     width = profile["width"]
     height = profile["height"]

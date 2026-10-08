@@ -46,10 +46,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   async function performRender() {
+    const rawPhone = (inputPhone && inputPhone.value.trim()) || '+880 1700 000000';
     const data = {
       name: (inputName && inputName.value.trim()) || 'John Doe',
       role: (inputRole && inputRole.value.trim()) || 'AI Engineer',
-      phone: (inputPhone && inputPhone.value.trim()) || '+880 1700 000000',
+      phone: SignatureRenderer.formatPhone(rawPhone),
       address: COMPANY_ADDRESS,
       transparentBg: inputTransparent ? inputTransparent.checked : false,
       preset: selectedPreset
@@ -165,11 +166,42 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // Real-time Input Listeners
-  [inputName, inputRole, inputPhone].forEach(input => {
+  [inputName, inputRole].forEach(input => {
     if (input) {
       input.addEventListener('input', () => scheduleRender(30));
     }
   });
+
+  // Phone input automatic formatting and real-time updates
+  if (inputPhone) {
+    const formatPhoneField = () => {
+      const raw = inputPhone.value;
+      const formatted = SignatureRenderer.formatPhone(raw);
+      if (formatted && formatted !== raw) {
+        inputPhone.value = formatted;
+        scheduleRender(10);
+      }
+    };
+
+    // Auto-format field on blur / focus change
+    inputPhone.addEventListener('blur', formatPhoneField);
+    inputPhone.addEventListener('change', formatPhoneField);
+
+    // Auto-format field immediately on paste
+    inputPhone.addEventListener('paste', () => {
+      setTimeout(formatPhoneField, 10);
+    });
+
+    // Auto-format field as soon as a complete 11 or 13 digit number is reached
+    inputPhone.addEventListener('input', () => {
+      const digits = inputPhone.value.replace(/\D/g, '');
+      if ((digits.startsWith('880') && digits.length === 13) ||
+          (digits.startsWith('01') && digits.length === 11)) {
+        formatPhoneField();
+      }
+      scheduleRender(30);
+    });
+  }
 
   if (inputTransparent) {
     inputTransparent.addEventListener('change', () => scheduleRender(0));

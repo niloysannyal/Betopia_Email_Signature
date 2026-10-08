@@ -37,6 +37,40 @@ class SignatureRenderer {
     }
   };
 
+  /**
+   * Automatically format phone numbers (e.g. +8801700000000 or 01700000000 -> +880 1700 000000)
+   */
+  static formatPhone(rawPhone) {
+    if (!rawPhone) return '';
+    const trimmed = String(rawPhone).trim();
+    const digitsOnly = trimmed.replace(/\D/g, '');
+
+    // 1. Starts with 880 followed by 10 digits (e.g. +8801700000000 or 8801700000000 -> 13 digits)
+    if (digitsOnly.startsWith('880') && digitsOnly.length === 13) {
+      return `+880 ${digitsOnly.slice(3, 7)} ${digitsOnly.slice(7)}`;
+    }
+
+    // 2. Starts with 01 followed by 9 digits (e.g. 01700000000 -> 11 digits)
+    if (digitsOnly.startsWith('01') && digitsOnly.length === 11) {
+      return `+880 ${digitsOnly.slice(1, 5)} ${digitsOnly.slice(5)}`;
+    }
+
+    // 3. 10 digits starting with 1 (e.g. 1700000000)
+    if (digitsOnly.startsWith('1') && digitsOnly.length === 10) {
+      return `+880 ${digitsOnly.slice(0, 4)} ${digitsOnly.slice(4)}`;
+    }
+
+    // 4. Starts with +880 or 880 and has 10 subsequent digits
+    if (trimmed.startsWith('+880') || trimmed.startsWith('880')) {
+      const rest = trimmed.replace(/^\+?880[\s-]*/, '').replace(/\D/g, '');
+      if (rest.length === 10) {
+        return `+880 ${rest.slice(0, 4)} ${rest.slice(4)}`;
+      }
+    }
+
+    return trimmed;
+  }
+
   constructor(canvas) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
@@ -273,7 +307,8 @@ class SignatureRenderer {
 
     const phoneFont = fonts.phoneReg || fonts.phone || '400 12.15px';
     offCtx.font = `${parseScaledFont(phoneFont)} ${fontFamily}`;
-    offCtx.fillText(phone || '', contentStartX, baselines.phone * scale);
+    const displayPhone = SignatureRenderer.formatPhone(phone || '');
+    offCtx.fillText(displayPhone, contentStartX, baselines.phone * scale);
 
     // 4.4 Address: Location Icon + Regular address text
     const locH = Math.round(12.0 * scale);
