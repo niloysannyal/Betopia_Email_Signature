@@ -30,6 +30,7 @@ venv.bak/
 
 # Generated signatures (keep repo clean)
 signature_*.png
+betopia_signature_*.png
 !assets/signature_preview.png
 generated_signatures/
 signatures/

@@ -144,20 +144,45 @@ def generate_signature(
     div_bot = profile["div_bot"] * scale
     draw.rectangle([div_x, div_top, div_x + div_w, div_bot], fill=ORANGE_COLOR)
 
-    # 3. Typography
+    # 3. Typography & Icons
     text_x = div_x + div_w + (profile["gap_div_text"] * scale)
     ty = profile["text_y"]
 
     draw.text((text_x, ty["name"] * scale), name, font=fonts["name"], fill=TEXT_COLOR)
     draw.text((text_x, ty["role"] * scale), role, font=fonts["role"], fill=TEXT_COLOR)
-    
-    # Phone
-    draw.text((text_x, ty["phone"] * scale), "Phone: ", font=fonts["phone_lbl"], fill=TEXT_COLOR)
-    lbl_len = fonts["phone_lbl"].getlength("Phone: ") if hasattr(fonts["phone_lbl"], "getlength") else (60 * scale)
-    draw.text((text_x + lbl_len, ty["phone"] * scale), phone, font=fonts["phone_val"], fill=TEXT_COLOR)
 
-    # Address
-    draw.text((text_x, ty["addr"] * scale), address, font=fonts["addr"], fill=TEXT_COLOR)
+    # Icon & Content column layout
+    icon_col_w = int(14 * scale)
+    icon_gap = int(6 * scale)
+    content_x = text_x + icon_col_w + icon_gap
+
+    script_dir = Path(__file__).resolve().parent
+
+    # 3.1 Phone Icon & Text
+    phone_icon_path = script_dir / "assets" / "icon_phone.png"
+    if phone_icon_path.exists():
+        phone_icon = Image.open(phone_icon_path).convert("RGBA")
+        phone_w = int(12.5 * scale)
+        phone_h = int(12.5 * scale)
+        phone_resized = phone_icon.resize((phone_w, phone_h), Image.Resampling.LANCZOS)
+        phone_x = text_x + int((icon_col_w - phone_w) / 2)
+        phone_y = int(59.5 * scale)
+        img_hi.paste(phone_resized, (phone_x, phone_y), phone_resized)
+
+    draw.text((content_x, ty["phone"] * scale), phone, font=fonts["phone_val"], fill=TEXT_COLOR)
+
+    # 3.2 Location Icon & Address Text
+    loc_icon_path = script_dir / "assets" / "icon_location.png"
+    if loc_icon_path.exists():
+        loc_icon = Image.open(loc_icon_path).convert("RGBA")
+        loc_h = int(12.0 * scale)
+        loc_w = int(loc_h * (loc_icon.width / loc_icon.height))
+        loc_resized = loc_icon.resize((loc_w, loc_h), Image.Resampling.LANCZOS)
+        loc_x = text_x + int((icon_col_w - loc_w) / 2)
+        loc_y = int(78.5 * scale)
+        img_hi.paste(loc_resized, (loc_x, loc_y), loc_resized)
+
+    draw.text((content_x, ty["addr"] * scale), address, font=fonts["addr"], fill=TEXT_COLOR)
 
     if scale > 1:
         img_final = img_hi.resize((width, height), Image.Resampling.LANCZOS)

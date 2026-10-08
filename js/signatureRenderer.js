@@ -25,6 +25,7 @@ class SignatureRenderer {
         role: '400 14.85px',
         phoneBold: '700 12.15px',
         phoneReg: '400 12.15px',
+        phone: '400 12.15px',
         address: '400 10.8px'
       },
       baselines: {
@@ -48,9 +49,12 @@ class SignatureRenderer {
     this.textColor = '#111827';
     this.fontFamily = '"Segoe UI", -apple-system, BlinkMacSystemFont, "Inter", Roboto, sans-serif';
 
-    // Logo element cache
+    // Image element cache
     this.logoImg = null;
     this.logoLoaded = false;
+    this.phoneImg = null;
+    this.locImg = null;
+    this.iconsLoaded = false;
   }
 
   /**
@@ -71,6 +75,37 @@ class SignatureRenderer {
   getDimensions() {
     const profile = SignatureRenderer.PROFILES[this.currentPreset] || SignatureRenderer.PROFILES['800x100'];
     return { width: profile.width, height: profile.height };
+  }
+
+  /**
+   * Preload Phone and Location icons
+   */
+  async loadIcons() {
+    if (this.iconsLoaded && this.phoneImg && this.locImg) {
+      return { phone: this.phoneImg, loc: this.locImg };
+    }
+
+    const phoneSrc = (typeof PHONE_ICON_DATA_URI !== 'undefined' && PHONE_ICON_DATA_URI)
+      ? PHONE_ICON_DATA_URI
+      : 'assets/icon_phone.png';
+
+    const locSrc = (typeof LOCATION_ICON_DATA_URI !== 'undefined' && LOCATION_ICON_DATA_URI)
+      ? LOCATION_ICON_DATA_URI
+      : 'assets/icon_location.png';
+
+    const loadImg = (src) => new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = src;
+    });
+
+    const [phone, loc] = await Promise.all([loadImg(phoneSrc), loadImg(locSrc)]);
+    this.phoneImg = phone;
+    this.locImg = loc;
+    this.iconsLoaded = true;
+    return { phone, loc };
   }
 
   /**
@@ -180,39 +215,87 @@ class SignatureRenderer {
       console.warn('Could not draw logo:', e);
     }
 
-    // 3. Typography Rendering Setup (scaled vector fonts)
+    // 3. Load Icons
+    try {
+      await this.loadIcons();
+    } catch (e) {
+      console.warn('Could not load icons:', e);
+    }
+
+    // 4. Typography & Icon Rendering Setup
     offCtx.fillStyle = textColor;
     offCtx.textBaseline = 'alphabetic';
     offCtx.textAlign = 'left';
 
     const parseScaledFont = (fontStr) => {
-      const match = fontStr.match(/^(\d+)\s+([\d.]+)px$/);
+      const match = (fontStr || '').match(/^(\d+)\s+([\d.]+)px$/);
       if (match) {
         return `${match[1]} ${parseFloat(match[2]) * scale}px`;
       }
-      return fontStr;
+      return fontStr || `400 ${12 * scale}px`;
     };
 
-    // 3.1 Name: Bold
+    // 4.1 Name: Bold
     offCtx.font = `${parseScaledFont(fonts.name)} ${fontFamily}`;
     offCtx.fillText(name || 'Full Name', sTextStartX, baselines.name * scale);
 
-    // 3.2 Role: Regular (10% reduced)
+    // 4.2 Role: Regular
     offCtx.font = `${parseScaledFont(fonts.role)} ${fontFamily}`;
     offCtx.fillText(role || 'Job Role', sTextStartX, baselines.role * scale);
 
-    // 3.3 Phone: Bold "Phone: " + Regular digits (10% reduced, moved down)
-    const phoneLabel = 'Phone: ';
-    offCtx.font = `${parseScaledFont(fonts.phoneBold)} ${fontFamily}`;
-    offCtx.fillText(phoneLabel, sTextStartX, baselines.phone * scale);
+    // Icon & Content column layout
+    const iconColW = 14 * scale;
+    const iconGap = 6 * scale;
+    const contentStartX = sTextStartX + iconColW + iconGap;
 
-    const phoneLabelW = offCtx.measureText(phoneLabel).width;
-    offCtx.font = `${parseScaledFont(fonts.phoneReg)} ${fontFamily}`;
-    offCtx.fillText(phone || '', sTextStartX + phoneLabelW, baselines.phone * scale);
+    // Vector fallback path definitions
+    const PHONE_SVG_PATH = "M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z";
+    const LOCATION_SVG_PATH = "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z";
 
-    // 3.4 Address: Regular (10% reduced, moved down)
+    // 4.3 Phone: Bold Phone Icon + Regular digits
+    const phoneW = Math.round(12.5 * scale);
+    const phoneH = Math.round(12.5 * scale);
+    const phoneX = sTextStartX + Math.round((iconColW - phoneW) / 2);
+    const phoneY = Math.round(59.5 * scale);
+
+    if (this.phoneImg) {
+      offCtx.imageSmoothingEnabled = true;
+      offCtx.imageSmoothingQuality = 'high';
+      offCtx.drawImage(this.phoneImg, phoneX, phoneY, phoneW, phoneH);
+    } else if (typeof Path2D !== 'undefined') {
+      offCtx.save();
+      offCtx.translate(phoneX, phoneY);
+      offCtx.scale(phoneW / 24, phoneH / 24);
+      offCtx.fillStyle = textColor;
+      offCtx.fill(new Path2D(PHONE_SVG_PATH));
+      offCtx.restore();
+    }
+
+    const phoneFont = fonts.phoneReg || fonts.phone || '400 12.15px';
+    offCtx.font = `${parseScaledFont(phoneFont)} ${fontFamily}`;
+    offCtx.fillText(phone || '', contentStartX, baselines.phone * scale);
+
+    // 4.4 Address: Location Icon + Regular address text
+    const locH = Math.round(12.0 * scale);
+    const locW = this.locImg ? Math.round(locH * (this.locImg.width / this.locImg.height)) : Math.round(locH * (14 / 20));
+    const locX = sTextStartX + Math.round((iconColW - locW) / 2);
+    const locY = Math.round(78.5 * scale);
+
+    if (this.locImg) {
+      offCtx.imageSmoothingEnabled = true;
+      offCtx.imageSmoothingQuality = 'high';
+      offCtx.drawImage(this.locImg, locX, locY, locW, locH);
+    } else if (typeof Path2D !== 'undefined') {
+      offCtx.save();
+      offCtx.translate(locX, locY);
+      offCtx.scale(locH / 24, locH / 24);
+      offCtx.fillStyle = textColor;
+      offCtx.fill(new Path2D(LOCATION_SVG_PATH));
+      offCtx.restore();
+    }
+
     offCtx.font = `${parseScaledFont(fonts.address)} ${fontFamily}`;
-    const maxAvailableTextWidth = (width - (sTextStartX / scale) - padRight) * scale;
+    const maxAvailableTextWidth = (width * scale) - contentStartX - (padRight * scale);
     let addrWidth = offCtx.measureText(address || '').width;
     if (addrWidth > maxAvailableTextWidth && maxAvailableTextWidth > 100 * scale) {
       const scaleFactor = maxAvailableTextWidth / addrWidth;
@@ -220,9 +303,9 @@ class SignatureRenderer {
       const adjustedSize = Math.max(9 * scale, Math.floor(baseSize * scaleFactor * 10) / 10);
       offCtx.font = `400 ${adjustedSize}px ${fontFamily}`;
     }
-    offCtx.fillText(address || '', sTextStartX, baselines.address * scale);
+    offCtx.fillText(address || '', contentStartX, baselines.address * scale);
 
-    // 4. Downsample high-res buffer to main target canvas using high-quality bicubic smoothing
+    // 5. Downsample high-res buffer to main target canvas using high-quality bicubic smoothing
     ctx.clearRect(0, 0, width, height);
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
